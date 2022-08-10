@@ -3,21 +3,15 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
-import * as applicationautoscaling from 'aws-cdk-lib/aws-applicationautoscaling';
-import * as loadBalancedFargateService from 'aws-cdk-lib/aws-ecs-patterns';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
+import * as DnsValidatedCertificate from 'aws-cdk-lib/aws-certificatemanager'
 
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class DashboardsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'DashboardsQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
 
 
 // Put below lines within the DashboardsStack constructor
@@ -58,9 +52,7 @@ const tg1 = new elbv2.ApplicationTargetGroup(this, 'TargetGroup', {
   vpc: vpc,
   targets: [service],
   protocol: elbv2.ApplicationProtocol.HTTP,
-  //stickinessCookieDuration: cdk.Duration.days(1),
-  //stickinessCookieDuration: Duration.minutes(5),
-
+  
   port: port,
   healthCheck: {
     path: '/',
@@ -71,8 +63,6 @@ const listener = lb.addListener(`HTTPListener`, {
   port: 80,
   defaultAction: elbv2.ListenerAction.forward([tg1]) 
 })
-
-
 
 
 const scalableTarget = service.autoScaleTaskCount({
@@ -89,54 +79,31 @@ scalableTarget.scaleOnMemoryUtilization('MemoryScaling', {
 });
 
 
+const zone = route53.PublicHostedZone.fromPublicHostedZoneAttributes(this, 'as94.pretty-solution.com', {
+  zoneName: 'as94.pretty-solution.com',
+  hostedZoneId: 'Z0336998L8QXS5PKF9H0',
+});
 
+new route53.ARecord(this, 'AliasRecord', {
+  zone,
+  target: route53.RecordTarget.fromAlias(new targets.LoadBalancerTarget(lb)),
+  // or - route53.RecordTarget.fromAlias(new targets.ApiGatewayDomain(domainName)),
+});
 
-//const scaling = service.autoScaleTaskCount({ maxCapacity: 1 });
-//scaling.scaleOnSchedule('StartVectorizationTask', {
-  //schedule: Schedule.cron({ minute: '10' }),
-  //maxCapacity: 1,
-  //minCapacity: 1,
-//});
-//scaling.scaleOnSchedule('StopVectorizationTask', {
-  //schedule: Schedule.cron({ minute: '20' }),
-  //maxCapacity: 0,
-  //minCapacity: 0,
-//});
-
-
-
-  //const autoScale = service.autoScaleTaskCount({
-  //minCapacity: 1,
-  //maxCapacity: 2,
-//});
-
-//autoScale.scaleOnCpuUtilization("CPUAutoscaling", {
-  //targetUtilizationPercent: 50,
-  //scaleInCooldown: cdk.Duration.seconds(30),
-  //scaleOutCooldown: cdk.Duration.seconds(30),
-//});
-
-
-
- //const scaling = service.service.autoScaleTaskCount({ maxCapacity: 3, minCapacity: 1 });
-//scaling.scaleOnCpuUtilization('autoscale_cpu', {
-  //targetUtilizationPercent: 50,
-  //scaleInCooldown: Duration.minutes(2),
-  //scaleOutCooldown: Duration.seconds(30)
-//});
-
-
-//const springbootAutoScaling = exampleApp.service.autoScaleTaskCount({
-  //maxCapacity: 4,
-  //minCapacity: 2
+//const cert = new DnsValidatedCertificate(this, 'my-cert', {
+  //zone,
+  //domainName: zone.zoneName,
+  //subjectAlternativeNames: [*.${zone.zoneName}]
 //})
 
-//springbootAutoScaling.scaleOnCpuUtilization('cpu-autoscaling', {
-  //targetUtilizationPercent: 45,
- // policyName: "cpu-autoscaling-policy",
-  //scaleInCooldown: cdk.Duration.seconds(30),
- // scaleOutCooldown: cdk.Duration.seconds(30)
-//})
+
+
+
+
+//const zone = HostedZone.fromHostedZoneAttributes(this, 'HostedZone', props.zoneAttrs)
+//new ARecord(this, 'ARecord', {
+  //zone,
+  //target: RecordTarget.fromIpAddresses('4.4.4.4'),
 
 
 
