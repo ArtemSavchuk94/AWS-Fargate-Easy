@@ -5,7 +5,7 @@ import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
-import * as DnsValidatedCertificate from 'aws-cdk-lib/aws-certificatemanager'
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 
 
 export class DashboardsStack extends Stack {
@@ -90,20 +90,16 @@ new route53.ARecord(this, 'AliasRecord', {
   // or - route53.RecordTarget.fromAlias(new targets.ApiGatewayDomain(domainName)),
 });
 
-//const cert = new DnsValidatedCertificate(this, 'my-cert', {
-  //zone,
-  //domainName: zone.zoneName,
-  //subjectAlternativeNames: [*.${zone.zoneName}]
-//})
+const cert = new acm.DnsValidatedCertificate(this, 'my-cert', {
+  hostedZone:zone,
+  domainName: zone.zoneName,
+  subjectAlternativeNames:['as94.pretty-solution.com']
+    })
 
 
 
 
 
-//const zone = HostedZone.fromHostedZoneAttributes(this, 'HostedZone', props.zoneAttrs)
-//new ARecord(this, 'ARecord', {
-  //zone,
-  //target: RecordTarget.fromIpAddresses('4.4.4.4'),
 
 
 
