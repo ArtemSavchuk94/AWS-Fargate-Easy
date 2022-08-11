@@ -25,7 +25,8 @@
     "@aws-cdk/aws-ecs-patterns": "^1.168.0",
     "@aws-cdk/aws-route53": "^1.168.0",
     "@aws-cdk/aws-route53-targets": "^1.168.0",
-    "aws-cdk-lib": "^2.36.0",
+    "@aws-cdk/core": "^1.168.0",
+    "aws-cdk-lib": "^2.37.1",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21"
   }
